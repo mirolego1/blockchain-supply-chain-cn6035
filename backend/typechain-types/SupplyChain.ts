@@ -8,6 +8,7 @@ import type {
   FunctionFragment,
   Result,
   Interface,
+  EventFragment,
   AddressLike,
   ContractRunner,
   ContractMethod,
@@ -17,6 +18,7 @@ import type {
   TypedContractEvent,
   TypedDeferredTopicFilter,
   TypedEventLog,
+  TypedLogDescription,
   TypedListener,
   TypedContractMethod,
 } from "./common";
@@ -40,6 +42,7 @@ export interface SupplyChainInterface extends Interface {
       | "addRMS"
       | "addRetailer"
       | "disCtr"
+      | "getTimestamps"
       | "manCtr"
       | "medicineCtr"
       | "retCtr"
@@ -47,6 +50,14 @@ export interface SupplyChainInterface extends Interface {
       | "showStage"
       | "sold"
   ): FunctionFragment;
+
+  getEvent(
+    nameOrSignatureOrTopic:
+      | "MedicineOrdered"
+      | "MedicineSold"
+      | "RoleAdded"
+      | "StageUpdated"
+  ): EventFragment;
 
   encodeFunctionData(functionFragment: "DIS", values: [BigNumberish]): string;
   encodeFunctionData(
@@ -94,6 +105,10 @@ export interface SupplyChainInterface extends Interface {
     values: [AddressLike, string, string]
   ): string;
   encodeFunctionData(functionFragment: "disCtr", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "getTimestamps",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "manCtr", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "medicineCtr",
@@ -141,6 +156,10 @@ export interface SupplyChainInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "disCtr", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getTimestamps",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "manCtr", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "medicineCtr",
@@ -150,6 +169,91 @@ export interface SupplyChainInterface extends Interface {
   decodeFunctionResult(functionFragment: "rmsCtr", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "showStage", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "sold", data: BytesLike): Result;
+}
+
+export namespace MedicineOrderedEvent {
+  export type InputTuple = [
+    medicineId: BigNumberish,
+    name: string,
+    timestamp: BigNumberish
+  ];
+  export type OutputTuple = [
+    medicineId: bigint,
+    name: string,
+    timestamp: bigint
+  ];
+  export interface OutputObject {
+    medicineId: bigint;
+    name: string;
+    timestamp: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace MedicineSoldEvent {
+  export type InputTuple = [medicineId: BigNumberish, timestamp: BigNumberish];
+  export type OutputTuple = [medicineId: bigint, timestamp: bigint];
+  export interface OutputObject {
+    medicineId: bigint;
+    timestamp: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace RoleAddedEvent {
+  export type InputTuple = [
+    role: string,
+    addr: AddressLike,
+    name: string,
+    timestamp: BigNumberish
+  ];
+  export type OutputTuple = [
+    role: string,
+    addr: string,
+    name: string,
+    timestamp: bigint
+  ];
+  export interface OutputObject {
+    role: string;
+    addr: string;
+    name: string;
+    timestamp: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace StageUpdatedEvent {
+  export type InputTuple = [
+    medicineId: BigNumberish,
+    stage: BigNumberish,
+    updatedBy: AddressLike,
+    timestamp: BigNumberish
+  ];
+  export type OutputTuple = [
+    medicineId: bigint,
+    stage: bigint,
+    updatedBy: string,
+    timestamp: bigint
+  ];
+  export interface OutputObject {
+    medicineId: bigint;
+    stage: bigint;
+    updatedBy: string;
+    timestamp: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
 
 export interface SupplyChain extends BaseContract {
@@ -236,7 +340,22 @@ export interface SupplyChain extends BaseContract {
   MedicineStock: TypedContractMethod<
     [arg0: BigNumberish],
     [
-      [bigint, string, string, bigint, bigint, bigint, bigint, bigint] & {
+      [
+        bigint,
+        string,
+        string,
+        bigint,
+        bigint,
+        bigint,
+        bigint,
+        bigint,
+        bigint,
+        bigint,
+        bigint,
+        bigint,
+        bigint,
+        bigint
+      ] & {
         id: bigint;
         name: string;
         description: string;
@@ -245,6 +364,12 @@ export interface SupplyChain extends BaseContract {
         DISid: bigint;
         RETid: bigint;
         stage: bigint;
+        orderedAt: bigint;
+        rmsAt: bigint;
+        manufacturedAt: bigint;
+        distributedAt: bigint;
+        retailedAt: bigint;
+        soldAt: bigint;
       }
     ],
     "view"
@@ -322,6 +447,21 @@ export interface SupplyChain extends BaseContract {
 
   disCtr: TypedContractMethod<[], [bigint], "view">;
 
+  getTimestamps: TypedContractMethod<
+    [_medicineID: BigNumberish],
+    [
+      [bigint, bigint, bigint, bigint, bigint, bigint] & {
+        orderedAt: bigint;
+        rmsAt: bigint;
+        manufacturedAt: bigint;
+        distributedAt: bigint;
+        retailedAt: bigint;
+        soldAt: bigint;
+      }
+    ],
+    "view"
+  >;
+
   manCtr: TypedContractMethod<[], [bigint], "view">;
 
   medicineCtr: TypedContractMethod<[], [bigint], "view">;
@@ -377,7 +517,22 @@ export interface SupplyChain extends BaseContract {
   ): TypedContractMethod<
     [arg0: BigNumberish],
     [
-      [bigint, string, string, bigint, bigint, bigint, bigint, bigint] & {
+      [
+        bigint,
+        string,
+        string,
+        bigint,
+        bigint,
+        bigint,
+        bigint,
+        bigint,
+        bigint,
+        bigint,
+        bigint,
+        bigint,
+        bigint,
+        bigint
+      ] & {
         id: bigint;
         name: string;
         description: string;
@@ -386,6 +541,12 @@ export interface SupplyChain extends BaseContract {
         DISid: bigint;
         RETid: bigint;
         stage: bigint;
+        orderedAt: bigint;
+        rmsAt: bigint;
+        manufacturedAt: bigint;
+        distributedAt: bigint;
+        retailedAt: bigint;
+        soldAt: bigint;
       }
     ],
     "view"
@@ -466,6 +627,22 @@ export interface SupplyChain extends BaseContract {
     nameOrSignature: "disCtr"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
+    nameOrSignature: "getTimestamps"
+  ): TypedContractMethod<
+    [_medicineID: BigNumberish],
+    [
+      [bigint, bigint, bigint, bigint, bigint, bigint] & {
+        orderedAt: bigint;
+        rmsAt: bigint;
+        manufacturedAt: bigint;
+        distributedAt: bigint;
+        retailedAt: bigint;
+        soldAt: bigint;
+      }
+    ],
+    "view"
+  >;
+  getFunction(
     nameOrSignature: "manCtr"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
@@ -484,5 +661,78 @@ export interface SupplyChain extends BaseContract {
     nameOrSignature: "sold"
   ): TypedContractMethod<[_medicineID: BigNumberish], [void], "nonpayable">;
 
-  filters: {};
+  getEvent(
+    key: "MedicineOrdered"
+  ): TypedContractEvent<
+    MedicineOrderedEvent.InputTuple,
+    MedicineOrderedEvent.OutputTuple,
+    MedicineOrderedEvent.OutputObject
+  >;
+  getEvent(
+    key: "MedicineSold"
+  ): TypedContractEvent<
+    MedicineSoldEvent.InputTuple,
+    MedicineSoldEvent.OutputTuple,
+    MedicineSoldEvent.OutputObject
+  >;
+  getEvent(
+    key: "RoleAdded"
+  ): TypedContractEvent<
+    RoleAddedEvent.InputTuple,
+    RoleAddedEvent.OutputTuple,
+    RoleAddedEvent.OutputObject
+  >;
+  getEvent(
+    key: "StageUpdated"
+  ): TypedContractEvent<
+    StageUpdatedEvent.InputTuple,
+    StageUpdatedEvent.OutputTuple,
+    StageUpdatedEvent.OutputObject
+  >;
+
+  filters: {
+    "MedicineOrdered(uint256,string,uint256)": TypedContractEvent<
+      MedicineOrderedEvent.InputTuple,
+      MedicineOrderedEvent.OutputTuple,
+      MedicineOrderedEvent.OutputObject
+    >;
+    MedicineOrdered: TypedContractEvent<
+      MedicineOrderedEvent.InputTuple,
+      MedicineOrderedEvent.OutputTuple,
+      MedicineOrderedEvent.OutputObject
+    >;
+
+    "MedicineSold(uint256,uint256)": TypedContractEvent<
+      MedicineSoldEvent.InputTuple,
+      MedicineSoldEvent.OutputTuple,
+      MedicineSoldEvent.OutputObject
+    >;
+    MedicineSold: TypedContractEvent<
+      MedicineSoldEvent.InputTuple,
+      MedicineSoldEvent.OutputTuple,
+      MedicineSoldEvent.OutputObject
+    >;
+
+    "RoleAdded(string,address,string,uint256)": TypedContractEvent<
+      RoleAddedEvent.InputTuple,
+      RoleAddedEvent.OutputTuple,
+      RoleAddedEvent.OutputObject
+    >;
+    RoleAdded: TypedContractEvent<
+      RoleAddedEvent.InputTuple,
+      RoleAddedEvent.OutputTuple,
+      RoleAddedEvent.OutputObject
+    >;
+
+    "StageUpdated(uint256,uint8,address,uint256)": TypedContractEvent<
+      StageUpdatedEvent.InputTuple,
+      StageUpdatedEvent.OutputTuple,
+      StageUpdatedEvent.OutputObject
+    >;
+    StageUpdated: TypedContractEvent<
+      StageUpdatedEvent.InputTuple,
+      StageUpdatedEvent.OutputTuple,
+      StageUpdatedEvent.OutputObject
+    >;
+  };
 }
