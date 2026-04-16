@@ -65,7 +65,10 @@ const deploymentsPath = path.join(__dirname, "../client/src/deployments.json");
 let CONTRACT_ADDRESS = null;
 if (fs.existsSync(deploymentsPath)) {
   const deployments = JSON.parse(fs.readFileSync(deploymentsPath, "utf8"));
-  CONTRACT_ADDRESS = deployments.contractAddress;
+  const network = deployments.networks["31337"] || deployments.networks["1337"];
+  if (network && network.SupplyChain) {
+    CONTRACT_ADDRESS = network.SupplyChain.address;
+  }
 }
 
 // Connect to local Hardhat/Ganache node
