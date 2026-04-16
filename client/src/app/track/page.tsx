@@ -30,7 +30,7 @@ interface Role {
   place: string
 }
 
-// NEW: Timestamps per stage from our improved smart contract
+// NEW: Timestamps per stage from improved smart contract
 interface Timestamps {
   orderedAt: number
   rmsAt: number
@@ -40,7 +40,7 @@ interface Timestamps {
   soldAt: number
 }
 
-// NEW: Stage history event from our back-end API
+// NEW: Stage history event from back-end API
 interface StageEvent {
   stage: string
   updated_by: string
@@ -191,7 +191,7 @@ export default function Track() {
 
       setSelectedId(medicineId)
 
-      // NEW: Fetch timestamps from our improved smart contract
+      // NEW: Fetch timestamps from improved smart contract
       try {
         const ts = await supplyChain.methods.getTimestamps(medicineId).call()
         setTimestamps({
@@ -206,7 +206,7 @@ export default function Track() {
         setTimestamps(null)
       }
 
-      // NEW: Try to fetch stage history from our back-end API
+      // NEW: Try to fetch stage history from back-end API
       try {
         const res = await axios.get(`http://localhost:4000/product/${medicineId}`)
         setStageHistory(res.data.history || [])

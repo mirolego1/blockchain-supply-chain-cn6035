@@ -17,7 +17,7 @@ export default function NetworkHelper() {
           const chainId = parseInt(networkId, 16).toString()
           setCurrentNetwork(chainId)
           
-          // Show helper if NOT on a network where we have deployments
+          // Show helper if NOT on a network where there are deployments
           const availableNetworks = Object.keys(deployments.networks)
           if (!availableNetworks.includes(chainId)) {
             setShowHelper(true)
